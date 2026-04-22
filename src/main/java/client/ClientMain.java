@@ -68,7 +68,11 @@ public class ClientMain {
             } catch (CommandExecutionException e) {
                 console.printError(e.getMessage());
                 continue;
+            } catch (IOException | ClassNotFoundException e) {
+                console.printError("Failed to prepare command: " + e.getMessage());
+                return;
             }
+            
 
             try {
                 CommandResponse response = sendRequest(out, in, request);
