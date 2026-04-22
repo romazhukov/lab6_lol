@@ -72,7 +72,6 @@ public class ClientMain {
                 console.printError("Failed to prepare command: " + e.getMessage());
                 return;
             }
-            
 
             try {
                 CommandResponse response = sendRequest(out, in, request);
