@@ -22,15 +22,14 @@ public class OrganizationBuilder {
 
         String name = inputManager.readValidatedLine(
                 "name (non-empty): ",
-                raw -> (raw == null || raw.trim().isBlank()) ? "name must not be empty" : null
-        ).trim();
+                raw -> (raw == null || raw.trim().isBlank()) ? "name must not be empty" : null).trim();
 
         console.println("--- Coordinates ---");
         int x = inputManager.readInt("x (int, required): ");
         float y = inputManager.readFloat("y (float): ");
 
-        double annualTurnover = inputManager.readDouble("annualTurnover (> 0): ");
-        long employeesCount = inputManager.readLong("employeesCount (> 0): ");
+        double annualTurnover = readPositiveDouble("annualTurnover (> 0): ");
+        long employeesCount = readPositiveLong("employeesCount (> 0): ");
         OrganizationType type = inputManager.readOrganizationTypeNullable("type");
         Address postalAddress = readAddressNullable();
 
@@ -40,8 +39,7 @@ public class OrganizationBuilder {
                 annualTurnover,
                 employeesCount,
                 type,
-                postalAddress
-        );
+                postalAddress);
 
         try {
             draft.validate();
@@ -90,8 +88,7 @@ public class OrganizationBuilder {
                 annualTurnover,
                 employeesCount,
                 type,
-                postalAddress
-        );
+                postalAddress);
 
         try {
             draft.validate();
@@ -124,8 +121,7 @@ public class OrganizationBuilder {
                         return "street length must be <= 190";
                     }
                     return null;
-                }
-        ).trim();
+                }).trim();
 
         if (street.isEmpty()) {
             return null;
@@ -142,8 +138,7 @@ public class OrganizationBuilder {
                         return "zipCode length must be <= 30";
                     }
                     return null;
-                }
-        ).trim();
+                }).trim();
 
         if (zip.isEmpty()) {
             zip = null;
@@ -204,7 +199,8 @@ public class OrganizationBuilder {
         String current = oldType == null ? "null" : oldType.name();
 
         while (true) {
-            console.print("type [" + current + "] (PUBLIC, TRUST, PRIVATE_LIMITED_COMPANY, empty = keep, '-' = null): ");
+            console.print(
+                    "type [" + current + "] (PUBLIC, TRUST, PRIVATE_LIMITED_COMPANY, empty = keep, '-' = null): ");
             String raw = readLineOrThrow();
 
             if (isEmpty(raw)) {
@@ -267,6 +263,32 @@ public class OrganizationBuilder {
             return Long.parseLong(s.trim());
         } catch (NumberFormatException e) {
             throw new CommandExecutionException(error);
+        }
+    }
+
+    private double readPositiveDouble(String prompt) throws CommandExecutionException {
+    while (true) {
+        double value = inputManager.readDouble(prompt);
+        if (value > 0) {
+            return value;
+        }
+        console.printError("value must be > 0");
+        if (inputManager.isScriptMode()) {
+            throw new CommandExecutionException("script input error: value must be > 0");
+        }
+    }
+}
+
+    private long readPositiveLong(String prompt) throws CommandExecutionException {
+        while (true) {
+            long value = inputManager.readLong(prompt);
+            if (value > 0) {
+                return value;
+            }
+            console.printError("value must be > 0");
+            if (inputManager.isScriptMode()) {
+                throw new CommandExecutionException("script input error: value must be > 0");
+            }
         }
     }
 }
