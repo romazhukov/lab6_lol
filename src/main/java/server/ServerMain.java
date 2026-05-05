@@ -63,6 +63,15 @@ public class ServerMain {
 
         loadCollection(fileManager, collectionManager, idGenerator);
 
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                fileManager.saveCollection(collectionManager.snapshotAll());
+                System.err.println("Collection saved on shutdown");
+            } catch (FileWriteException e) {
+                System.err.println("Could not save collection on shutdown: " + message(e));
+            }
+        }));
+
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.err.println("Server started on localhost:" + port);
 
@@ -130,7 +139,7 @@ public class ServerMain {
                     context.getCollectionManager().clear();
                     return CommandResponse.ok("Collection cleared");
                 case "save":
-                    return save(context);
+                    return CommandResponse.error("save is server-only command");
                 case "remove_head":
                     return removeHead(context);
                 case "count_greater_than_type":
@@ -258,15 +267,6 @@ public class ServerMain {
         return CommandResponse.ok("Found organization id=" + id, organization);
     }
 
-    private static CommandResponse save(CommandContext context) {
-        try {
-            context.getFileManager().saveCollection(context.getCollectionManager().snapshotAll());
-            return CommandResponse.ok("Saved to " + context.getFileManager().getDataFile());
-        } catch (FileWriteException e) {
-            return CommandResponse.error("Command save failed: " + message(e));
-        }
-    }
-
     private static CommandResponse removeHead(CommandContext context) {
         Organization organization = context.getCollectionManager().removeHead();
 
@@ -350,7 +350,6 @@ public class ServerMain {
         manager.register(new UpdateCommand());
         manager.register(new RemoveByIdCommand());
         manager.register(new ClearCommand());
-        manager.register(new SaveCommand());
         manager.register(new ExecuteScriptCommand());
         manager.register(new ExitCommand());
         manager.register(new RemoveHeadCommand());
